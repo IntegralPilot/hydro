@@ -3,11 +3,8 @@
 
 #include <stdarg.h>
 #include <string.h>
-#include <stdint.h> // Include for uintptr_t
-
-// This function is implemented in the kernel
-// We don't define it so that the clang makes the code dynamically link to it at runtime
-int write(char* stream_name, int* buf, int count);
+#include <stdint.h> 
+#include <hydro/stream.h>
 
 // Use macros for digit conversion to avoid magic numbers
 #define TO_DIGIT(n) ((n) + '0')
