@@ -194,9 +194,6 @@ impl Writer {
                 ascii_character: b' ',
                 color_code: self.color_code,
             });
-        } else {
-            // go up to the next line
-            self.column_position = BUFFER_WIDTH - 1;
         }
     }
 }

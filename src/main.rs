@@ -3,10 +3,37 @@
 
 extern crate alloc;
 
-use hydro_os::println;
+use alloc::{format, vec};
+use alloc::vec::Vec;
+use breadcrumbs::LogListener;
+use hydro_os::{println, LOGS_ENABLED};
 use hydro_os::task::{executor::Executor, keyboard, Task};
 use bootloader::{entry_point, BootInfo};
+use hydro_os::vga_buffer::{Color, _println_with_color};
 use core::panic::PanicInfo;
+
+static mut COLOR_INDEX: usize = 0;
+
+struct HydroLogListener(Vec<Color>);
+
+impl LogListener for HydroLogListener {
+    fn on_log(&mut self, log: breadcrumbs::Log) {
+        if !*LOGS_ENABLED.lock() {
+            return;
+        }
+        // choose a color
+        let color = unsafe {
+            let color = self.0[COLOR_INDEX];
+            COLOR_INDEX = (COLOR_INDEX + 1) % self.0.len();
+            color
+        };
+
+        // print the log with the chosen color
+        _println_with_color(format!("{}", log).as_str(), color);
+
+        log.remove();
+    }
+}
 
 entry_point!(kernel_main);
 
@@ -23,6 +50,8 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
 
     allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
+
+    breadcrumbs::init!(HydroLogListener( vec![Color::Blue, Color::Green, Color::Cyan, Color::Red, Color::Magenta, Color::Brown, Color::LightGray, Color::DarkGray, Color::LightBlue, Color::LightGreen, Color::LightCyan, Color::LightRed, Color::Pink, Color::Yellow, Color::White]));
 
     let mut executor = Executor::new();
     executor.spawn(Task::new(keyboard::print_keypresses()));

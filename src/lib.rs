@@ -17,6 +17,10 @@ pub mod serial;
 pub mod task;
 pub mod vga_buffer;
 
+lazy_static! {
+    pub static ref LOGS_ENABLED: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
+}
+
 pub fn init() {
     gdt::init();
     interrupts::init_idt();
@@ -75,8 +79,11 @@ pub fn hlt_loop() -> ! {
     }
 }
 
+use alloc::sync::Arc;
 #[cfg(test)]
 use bootloader::{entry_point, BootInfo};
+use lazy_static::lazy_static;
+use spin::Mutex;
 
 #[cfg(test)]
 entry_point!(test_kernel_main);
