@@ -1,0 +1,6 @@
+clang -I ../stdlib/c -nostdlib --target=wasm32 -Ofast -Wl,--allow-undefined src/hello.c -o ./main.wasm
+src/hello.c:1:10: fatal error: 'stdio.h' file not found
+    1 | #include <stdio.h>
+      |          ^~~~~~~~~
+1 error generated.
+make: *** [Makefile:8: main.wasm] Error 1
