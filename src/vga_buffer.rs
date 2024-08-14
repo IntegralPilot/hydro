@@ -1,5 +1,5 @@
-use core::fmt;
 use alloc::{string::String, vec::Vec};
+use core::fmt;
 use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
@@ -146,9 +146,7 @@ impl Writer {
     /// Returns the current line of the buffer as a string.
     pub fn current_line_text(&self) -> String {
         let row = BUFFER_HEIGHT - 1;
-        let line: Vec<char> = self
-            .buffer
-            .chars[row]
+        let line: Vec<char> = self.buffer.chars[row]
             .iter()
             .map(|char| char.read().ascii_character as char)
             .collect();
@@ -177,7 +175,7 @@ impl Writer {
         self.write_string(s);
         self.write_byte(b'\n');
     }
-     
+
     /// Prints the given string to the VGA text buffer with the given foreground color.
     pub fn print_with_color(&mut self, s: &str, color: Color) {
         self.set_color(color);
@@ -216,7 +214,6 @@ pub fn _backspace() {
 pub fn _println_with_color(s: &str, color: Color) {
     use x86_64::instructions::interrupts;
 
-
     interrupts::without_interrupts(|| {
         WRITER.lock().println_with_color(s, color);
     });
@@ -230,21 +227,16 @@ pub fn _print_with_color(s: &str, color: Color) {
     });
 }
 
-
 pub fn _get_current_line() -> String {
     use x86_64::instructions::interrupts;
 
-    interrupts::without_interrupts(|| {
-        WRITER.lock().current_line_text()
-    })
+    interrupts::without_interrupts(|| WRITER.lock().current_line_text())
 }
 
 pub fn _clear_screen() {
     use x86_64::instructions::interrupts;
 
-    interrupts::without_interrupts(|| {
-        WRITER.lock().clear_screen()
-    })
+    interrupts::without_interrupts(|| WRITER.lock().clear_screen())
 }
 
 /// Like the `print!` macro in the standard library, but prints to the VGA text buffer.

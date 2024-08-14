@@ -4,4 +4,5 @@ pub enum Error {
     NotFound = -3,
     MethodNotAllowed = -4,
     InternalError = -5,
+    OutOfMemory = -6,
 }

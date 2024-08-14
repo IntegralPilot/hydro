@@ -8,13 +8,13 @@
 // doesn't actually work for now, the used streams don't exist yet
 void *malloc(size_t size) {
     write("/dev/allocator/alloc-size", (int *)&size, sizeof(size_t));
-    return (void *)read("/dev/malloc/alloc-addr");
+    return (void *)read("/dev/allocator/alloc");
 }
 
 // free
 // doesn't actually work for now, the used streams don't exist yet
 void free(void *ptr) {
-    write("/dev/allocator/free-addr", (int *)&ptr, sizeof(void *));
+    write("/dev/allocator/free", (int *)&ptr, sizeof(void *));
 }
 
 // realloc
@@ -22,7 +22,7 @@ void free(void *ptr) {
 void *realloc(void *ptr, size_t size) {
     write("/dev/allocator/realloc-addr", (int *)&ptr, sizeof(void *));
     write("/dev/allocator/alloc-size", (int *)&size, sizeof(size_t));
-    return (void *)read("/dev/realloc/alloc-addr");
+    return (void *)read("/dev/allocator/realloc");
 }
 
 #endif // STDLIB_C

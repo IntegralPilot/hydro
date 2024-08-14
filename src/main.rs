@@ -3,15 +3,15 @@
 
 extern crate alloc;
 
-use alloc::{format, vec};
 use alloc::vec::Vec;
-use breadcrumbs::LogListener;
-use hydro_os::{println, LOGS_ENABLED};
-use hydro_os::task::{executor::Executor, keyboard, Task};
-use hydro_os::wasm::run_from_bytes;
+use alloc::{format, vec};
 use bootloader::{entry_point, BootInfo};
-use hydro_os::vga_buffer::{Color, _println_with_color};
+use breadcrumbs::LogListener;
 use core::panic::PanicInfo;
+use hydro_os::task::{executor::Executor, keyboard, Task};
+use hydro_os::vga_buffer::{Color, _println_with_color};
+use hydro_os::wasm::run_from_bytes;
+use hydro_os::{println, LOGS_ENABLED};
 
 static mut COLOR_INDEX: usize = 0;
 
@@ -55,9 +55,26 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     hydro_os::init();
 
-    breadcrumbs::init!(HydroLogListener( vec![Color::Blue, Color::Green, Color::Cyan, Color::Red, Color::Magenta, Color::Brown, Color::LightGray, Color::DarkGray, Color::LightBlue, Color::LightGreen, Color::LightCyan, Color::LightRed, Color::Pink, Color::Yellow, Color::White]));
+    breadcrumbs::init!(HydroLogListener(vec![
+        Color::Blue,
+        Color::Green,
+        Color::Cyan,
+        Color::Red,
+        Color::Magenta,
+        Color::Brown,
+        Color::LightGray,
+        Color::DarkGray,
+        Color::LightBlue,
+        Color::LightGreen,
+        Color::LightCyan,
+        Color::LightRed,
+        Color::Pink,
+        Color::Yellow,
+        Color::White
+    ]));
 
     run_from_bytes(include_bytes!("../apps/hello/main.wasm")).unwrap();
+    run_from_bytes(include_bytes!("../apps/alloc-demo/main.wasm")).unwrap();
 
     let mut executor = Executor::new();
     executor.spawn(Task::new(keyboard::print_keypresses()));

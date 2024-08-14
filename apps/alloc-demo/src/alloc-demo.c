@@ -2,13 +2,10 @@
 #include <stdio.h>
 
 void _start() {
-    printf("Hello, World from Allocations in C on Hydro!\n");
+    printf("Hello, World from Allocations in WASM on Hydro!\n");
 
     // demo malloc, free and realloc
-    int* arr = (int*)malloc(5 * sizeof(int));
-    for (int i = 0; i < 5; i++) {
-        arr[i] = i;
-    }
+    int* arr = malloc(5 * sizeof(int));
 
     // print the address of the memory we got
     printf("Address of the memory we got: %p\n", arr);

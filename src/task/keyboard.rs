@@ -1,4 +1,8 @@
-use crate::{print, println, vga_buffer::{_backspace, _clear_screen}, LOGS_ENABLED};
+use crate::{
+    print, println,
+    vga_buffer::{_backspace, _clear_screen},
+    LOGS_ENABLED,
+};
 use conquer_once::spin::OnceCell;
 use core::{
     pin::Pin,
@@ -78,28 +82,24 @@ pub async fn print_keypresses() {
         if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
             if let Some(key) = keyboard.process_keyevent(key_event) {
                 match key {
-                    DecodedKey::Unicode(character) => {
-                        match character {
-                            '\u{8}' => _backspace(),
-                            _ => print!("{}", character),
+                    DecodedKey::Unicode(character) => match character {
+                        '\u{8}' => _backspace(),
+                        _ => print!("{}", character),
+                    },
+                    DecodedKey::RawKey(key) => match key {
+                        pc_keyboard::KeyCode::LControl => _clear_screen(),
+                        pc_keyboard::KeyCode::RControl => _clear_screen(),
+                        pc_keyboard::KeyCode::LShift => {
+                            let mut logs_enabled = LOGS_ENABLED.lock();
+                            *logs_enabled = !*logs_enabled;
                         }
-                    }
-                    DecodedKey::RawKey(key) => {
-                        match key {
-                            pc_keyboard::KeyCode::LControl => _clear_screen(),
-                            pc_keyboard::KeyCode::RControl => _clear_screen(),
-                            pc_keyboard::KeyCode::LShift => {
-                                let mut logs_enabled = LOGS_ENABLED.lock();
-                                *logs_enabled = !*logs_enabled;
-                            },
-                            pc_keyboard::KeyCode::RShift => {
-                                let mut logs_enabled = LOGS_ENABLED.lock();
-                                *logs_enabled = !*logs_enabled;
-                            },
-                            pc_keyboard::KeyCode::Backspace => _backspace(),
-                            _ => {}
+                        pc_keyboard::KeyCode::RShift => {
+                            let mut logs_enabled = LOGS_ENABLED.lock();
+                            *logs_enabled = !*logs_enabled;
                         }
-                    }
+                        pc_keyboard::KeyCode::Backspace => _backspace(),
+                        _ => {}
+                    },
                 }
             }
         }
