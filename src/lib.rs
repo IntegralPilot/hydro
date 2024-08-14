@@ -16,9 +16,10 @@ pub mod memory;
 pub mod serial;
 pub mod task;
 pub mod vga_buffer;
+pub mod wasm;
 
 lazy_static! {
-    pub static ref LOGS_ENABLED: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
+    pub static ref LOGS_ENABLED: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
 }
 
 pub fn init() {

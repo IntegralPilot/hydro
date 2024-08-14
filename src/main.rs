@@ -8,6 +8,7 @@ use alloc::vec::Vec;
 use breadcrumbs::LogListener;
 use hydro_os::{println, LOGS_ENABLED};
 use hydro_os::task::{executor::Executor, keyboard, Task};
+use hydro_os::wasm::run_from_bytes;
 use bootloader::{entry_point, BootInfo};
 use hydro_os::vga_buffer::{Color, _println_with_color};
 use core::panic::PanicInfo;
@@ -43,7 +44,6 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     use x86_64::VirtAddr;
 
     println!("Hello World{}", "!");
-    hydro_os::init();
 
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
     let mut mapper = unsafe { memory::init(phys_mem_offset) };
@@ -51,7 +51,13 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
 
+    println!("Made heap!");
+
+    hydro_os::init();
+
     breadcrumbs::init!(HydroLogListener( vec![Color::Blue, Color::Green, Color::Cyan, Color::Red, Color::Magenta, Color::Brown, Color::LightGray, Color::DarkGray, Color::LightBlue, Color::LightGreen, Color::LightCyan, Color::LightRed, Color::Pink, Color::Yellow, Color::White]));
+
+    run_from_bytes(include_bytes!("../apps/hello.wasm")).unwrap();
 
     let mut executor = Executor::new();
     executor.spawn(Task::new(keyboard::print_keypresses()));
