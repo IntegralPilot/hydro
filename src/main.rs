@@ -57,7 +57,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     breadcrumbs::init!(HydroLogListener( vec![Color::Blue, Color::Green, Color::Cyan, Color::Red, Color::Magenta, Color::Brown, Color::LightGray, Color::DarkGray, Color::LightBlue, Color::LightGreen, Color::LightCyan, Color::LightRed, Color::Pink, Color::Yellow, Color::White]));
 
-    run_from_bytes(include_bytes!("../apps/hello.wasm")).unwrap();
+    run_from_bytes(include_bytes!("../apps/hello/main.wasm")).unwrap();
 
     let mut executor = Executor::new();
     executor.spawn(Task::new(keyboard::print_keypresses()));

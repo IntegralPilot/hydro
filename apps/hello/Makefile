@@ -5,7 +5,7 @@ LDFLAGS = -Wl,--allow-undefined
 all: main.wasm
 
 main.wasm:
-	$(CC) $(CFLAGS) $(LDFLAGS) hello.c -o ./hello.wasm
+	$(CC) $(CFLAGS) $(LDFLAGS) src/hello.c -o ./main.wasm
 
 clean:
 	del main.wasm
