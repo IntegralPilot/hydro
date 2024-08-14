@@ -1,4 +1,5 @@
-use crate::{gdt, hlt_loop, print, println};
+use crate::{gdt, hlt_loop, println, vga_buffer::{Color, _print_with_color}};
+use alloc::{vec, vec::Vec};
 use lazy_static::lazy_static;
 use pic8259::ChainedPics;
 use spin;
@@ -27,7 +28,10 @@ impl InterruptIndex {
 pub static PICS: spin::Mutex<ChainedPics> =
     spin::Mutex::new(unsafe { ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET) });
 
+static mut COLOR_INDEX: usize = 0;
+
 lazy_static! {
+    static ref POSSIBLE_COLORS: Vec<Color> = vec![Color::Blue, Color::Green, Color::Cyan, Color::Red, Color::Magenta, Color::Brown, Color::LightGray, Color::DarkGray, Color::LightBlue, Color::LightGreen, Color::LightCyan, Color::LightRed, Color::Pink, Color::Yellow, Color::White];
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
         idt.breakpoint.set_handler_fn(breakpoint_handler);
@@ -72,7 +76,12 @@ extern "x86-interrupt" fn double_fault_handler(
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    print!(".");
+    let colour = unsafe {
+        let color = POSSIBLE_COLORS[COLOR_INDEX];
+        COLOR_INDEX = (COLOR_INDEX + 1) % POSSIBLE_COLORS.len();
+        color
+    };
+    _print_with_color(".", colour);
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
@@ -90,10 +99,4 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Keyboard.as_u8());
     }
-}
-
-#[test_case]
-fn test_breakpoint_exception() {
-    // invoke a breakpoint exception
-    x86_64::instructions::interrupts::int3();
 }

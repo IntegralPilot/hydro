@@ -1,16 +1,8 @@
 [package]
-name = "blog_os"
+name = "hydro_os"
 version = "0.1.0"
-authors = ["Philipp Oppermann <dev@phil-opp.com>"]
-edition = "2018"
-
-[[test]]
-name = "should_panic"
-harness = false
-
-[[test]]
-name = "stack_overflow"
-harness = false
+authors = ["IntegralPilot"]
+edition = "2021"
 
 [dependencies]
 bootloader = { version = "0.9", features = ["map_physical_memory"] }

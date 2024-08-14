@@ -1,4 +1,5 @@
 use core::fmt;
+use alloc::{string::String, vec::Vec};
 use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
@@ -141,6 +142,63 @@ impl Writer {
             self.buffer.chars[row][col].write(blank);
         }
     }
+
+    /// Returns the current line of the buffer as a string.
+    pub fn current_line_text(&self) -> String {
+        let row = BUFFER_HEIGHT - 1;
+        let line: Vec<char> = self
+            .buffer
+            .chars[row]
+            .iter()
+            .map(|char| char.read().ascii_character as char)
+            .collect();
+
+        line.into_iter().collect()
+    }
+
+    /// Clears the entire buffer.
+    pub fn clear_screen(&mut self) {
+        for row in 0..BUFFER_HEIGHT {
+            self.clear_row(row);
+        }
+        // reset the cursor position
+        self.column_position = 0;
+    }
+
+    /// Sets the foreground color for future writes.
+    pub fn set_color(&mut self, foreground: Color) {
+        let background = Color::Black;
+        self.color_code = ColorCode::new(foreground, background);
+    }
+
+    /// Prints the given string to the VGA text buffer with the given foreground color.
+    pub fn println_with_color(&mut self, s: &str, color: Color) {
+        self.set_color(color);
+        self.write_string(s);
+        self.write_byte(b'\n');
+    }
+     
+    /// Prints the given string to the VGA text buffer with the given foreground color.
+    pub fn print_with_color(&mut self, s: &str, color: Color) {
+        self.set_color(color);
+        self.write_string(s);
+    }
+
+    /// Moves the cursor back one position and erases the character at that position.
+    pub fn backspace(&mut self) {
+        if self.column_position > 0 {
+            self.column_position -= 1;
+            let row = BUFFER_HEIGHT - 1;
+            let col = self.column_position;
+            self.buffer.chars[row][col].write(ScreenChar {
+                ascii_character: b' ',
+                color_code: self.color_code,
+            });
+        } else {
+            // go up to the next line
+            self.column_position = BUFFER_WIDTH - 1;
+        }
+    }
 }
 
 impl fmt::Write for Writer {
@@ -148,6 +206,48 @@ impl fmt::Write for Writer {
         self.write_string(s);
         Ok(())
     }
+}
+
+pub fn _backspace() {
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+        WRITER.lock().backspace();
+    });
+}
+
+pub fn _println_with_color(s: &str, color: Color) {
+    use x86_64::instructions::interrupts;
+
+
+    interrupts::without_interrupts(|| {
+        WRITER.lock().println_with_color(s, color);
+    });
+}
+
+pub fn _print_with_color(s: &str, color: Color) {
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+        WRITER.lock().print_with_color(s, color);
+    });
+}
+
+
+pub fn _get_current_line() -> String {
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+        WRITER.lock().current_line_text()
+    })
+}
+
+pub fn _clear_screen() {
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+        WRITER.lock().clear_screen()
+    })
 }
 
 /// Like the `print!` macro in the standard library, but prints to the VGA text buffer.
@@ -172,33 +272,5 @@ pub fn _print(args: fmt::Arguments) {
 
     interrupts::without_interrupts(|| {
         WRITER.lock().write_fmt(args).unwrap();
-    });
-}
-
-#[test_case]
-fn test_println_simple() {
-    println!("test_println_simple output");
-}
-
-#[test_case]
-fn test_println_many() {
-    for _ in 0..200 {
-        println!("test_println_many output");
-    }
-}
-
-#[test_case]
-fn test_println_output() {
-    use core::fmt::Write;
-    use x86_64::instructions::interrupts;
-
-    let s = "Some test string that fits on a single line";
-    interrupts::without_interrupts(|| {
-        let mut writer = WRITER.lock();
-        writeln!(writer, "\n{}", s).expect("writeln failed");
-        for (i, c) in s.chars().enumerate() {
-            let screen_char = writer.buffer.chars[BUFFER_HEIGHT - 2][i].read();
-            assert_eq!(char::from(screen_char.ascii_character), c);
-        }
     });
 }

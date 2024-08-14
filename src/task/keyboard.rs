@@ -1,4 +1,4 @@
-use crate::{print, println};
+use crate::{print, println, vga_buffer::{_backspace, _clear_screen}};
 use conquer_once::spin::OnceCell;
 use core::{
     pin::Pin,
@@ -78,8 +78,20 @@ pub async fn print_keypresses() {
         if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
             if let Some(key) = keyboard.process_keyevent(key_event) {
                 match key {
-                    DecodedKey::Unicode(character) => print!("{}", character),
-                    DecodedKey::RawKey(key) => print!("{:?}", key),
+                    DecodedKey::Unicode(character) => {
+                        match character {
+                            '\u{8}' => _backspace(),
+                            _ => print!("{}", character),
+                        }
+                    }
+                    DecodedKey::RawKey(key) => {
+                        match key {
+                            pc_keyboard::KeyCode::LControl => _clear_screen(),
+                            pc_keyboard::KeyCode::RControl => _clear_screen(),
+                            pc_keyboard::KeyCode::Backspace => _backspace(),
+                            _ => {}
+                        }
+                    }
                 }
             }
         }
